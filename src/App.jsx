@@ -2,22 +2,34 @@ import { useState, useEffect } from 'react';
 import { data } from './data/tweets';
 import TweetCard from './components/TweetCard';
 import CategoryFilter from './components/CategoryFilter';
+import HashtagPanel from './components/HashtagPanel';
 import './App.css';
 
 const LOCAL_STORAGE_KEY = 'twitter_app_done_messages';
+const PREFERENCES_KEY = 'twitter_app_preferences';
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState(data.categories[0]);
   const [doneMessages, setDoneMessages] = useState(new Set());
+  const [selectedTags, setSelectedTags] = useState(new Set());
 
-  // Load done messages from local storage on mount
+  // Load state from local storage on mount
   useEffect(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
+    const savedDone = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedDone) {
       try {
-        setDoneMessages(new Set(JSON.parse(saved)));
+        setDoneMessages(new Set(JSON.parse(savedDone)));
       } catch (e) {
-        console.error("Failed to parse local storage", e);
+        console.error("Failed to parse done messages", e);
+      }
+    }
+
+    const savedPrefs = localStorage.getItem(PREFERENCES_KEY);
+    if (savedPrefs) {
+      try {
+        setSelectedTags(new Set(JSON.parse(savedPrefs)));
+      } catch (e) {
+        console.error("Failed to parse preferences", e);
       }
     }
   }, []);
@@ -26,11 +38,22 @@ function App() {
     setSelectedCategory(category);
   };
 
-
+  const handleToggleTag = (tag) => {
+    const newTags = new Set(selectedTags);
+    if (newTags.has(tag)) {
+      newTags.delete(tag);
+    } else {
+      newTags.add(tag);
+    }
+    setSelectedTags(newTags);
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify([...newTags]));
+  };
 
   const handleClearHistory = () => {
     setDoneMessages(new Set());
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+    // Optionally clear prefs too, but usually clear history implies just done tasks. 
+    // Keeping prefs for now.
   };
 
   // Calculate counts for each category
@@ -71,6 +94,14 @@ function App() {
         <div className="warning-banner">
           Warning: To avoid being banned, please tweet responsibly. We recommend waiting 1-2 minutes between tweets.
         </div>
+        
+        <HashtagPanel 
+          hashtags={data.hashtags || []}
+          mentions={data.mentions || []}
+          selectedItems={selectedTags}
+          onToggleItem={handleToggleTag}
+        />
+
         <CategoryFilter 
           categories={data.categories}
           selectedCategory={selectedCategory}
@@ -80,15 +111,21 @@ function App() {
       </header>
       
       <main className="tweets-grid">
-        {currentMessages.map((msg) => (
-          <TweetCard 
-            key={msg.id}
-            id={msg.id}
-            message={msg.text}
-            isDone={doneMessages.has(`${selectedCategory}-${msg.id}`)}
-            onTweet={handleTweet}
-          />
-        ))}
+        {currentMessages.map((msg) => {
+          // Append selected tags and mentions to the message
+          const tagsString = Array.from(selectedTags).join(' ');
+          const fullMessage = tagsString ? `${msg.text}\n\n${tagsString}` : msg.text;
+          
+          return (
+            <TweetCard 
+              key={msg.id}
+              id={msg.id}
+              message={fullMessage}
+              isDone={doneMessages.has(`${selectedCategory}-${msg.id}`)}
+              onTweet={handleTweet}
+            />
+          );
+        })}
       </main>
     </div>
   );

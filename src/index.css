@@ -169,3 +169,57 @@ body {
   max-width: 600px;
   width: 100%;
 }
+
+.hashtag-panel {
+  background-color: var(--secondary-color);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  width: 100%;
+  width: 100%;
+}
+
+.hashtag-panel h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.hashtag-section {
+  margin-bottom: 1rem;
+}
+
+.hashtag-section h4 {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tags-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.tag-checkbox:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tag-checkbox input:checked + .tag-label {
+  color: var(--primary-color);
+  font-weight: 500;
+}
