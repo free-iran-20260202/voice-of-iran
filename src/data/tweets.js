@@ -117,7 +117,14 @@ export const data = {
 
     },
     hashtags: [
-        '#IranMassacre', '#IranRevolution2026', '#RezaPahlavi', '#expeliraninadiplomats', '#DigitalBlackoutIran', '#FreeIran'
+        '#NoDealWithTerrorist',
+        '#ExpelIranianDiplomats',
+        '#MilitarySupportForIran',
+        '#IranMassacre',
+        '#IranRevolution2026',
+        '#RezaPahlavi',
+        '#DigitalBlackoutIran',
+        '#FreeIran'
     ],
     mentions: [
         '@who',
