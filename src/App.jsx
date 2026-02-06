@@ -7,11 +7,15 @@ import './App.css';
 
 const LOCAL_STORAGE_KEY = 'twitter_app_done_messages';
 const PREFERENCES_KEY = 'twitter_app_preferences';
+const CUSTOM_HASHTAGS_KEY = 'twitter_app_custom_hashtags';
+const CUSTOM_MENTIONS_KEY = 'twitter_app_custom_mentions';
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState(data.categories[0]);
   const [doneMessages, setDoneMessages] = useState(new Set());
   const [selectedTags, setSelectedTags] = useState(new Set());
+  const [customHashtags, setCustomHashtags] = useState([]);
+  const [customMentions, setCustomMentions] = useState([]);
 
   // Load state from local storage on mount
   useEffect(() => {
@@ -32,6 +36,24 @@ function App() {
         console.error("Failed to parse preferences", e);
       }
     }
+
+    const savedCustomHashtags = localStorage.getItem(CUSTOM_HASHTAGS_KEY);
+    if (savedCustomHashtags) {
+      try {
+        setCustomHashtags(JSON.parse(savedCustomHashtags));
+      } catch (e) {
+        console.error("Failed to parse custom hashtags", e);
+      }
+    }
+
+    const savedCustomMentions = localStorage.getItem(CUSTOM_MENTIONS_KEY);
+    if (savedCustomMentions) {
+      try {
+        setCustomMentions(JSON.parse(savedCustomMentions));
+      } catch (e) {
+        console.error("Failed to parse custom mentions", e);
+      }
+    }
   }, []);
 
   const handleSelectCategory = (category) => {
@@ -45,6 +67,54 @@ function App() {
     } else {
       newTags.add(tag);
     }
+    setSelectedTags(newTags);
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify([...newTags]));
+  };
+
+  const handleAddCustomHashtag = (hashtag) => {
+    // Ensure it starts with #
+    const formatted = hashtag.startsWith('#') ? hashtag : `#${hashtag}`;
+    if (!customHashtags.includes(formatted) && !data.hashtags.includes(formatted)) {
+      const newHashtags = [...customHashtags, formatted];
+      setCustomHashtags(newHashtags);
+      localStorage.setItem(CUSTOM_HASHTAGS_KEY, JSON.stringify(newHashtags));
+      return true;
+    }
+    return false;
+  };
+
+  const handleRemoveCustomHashtag = (hashtag) => {
+    const newHashtags = customHashtags.filter(h => h !== hashtag);
+    setCustomHashtags(newHashtags);
+    localStorage.setItem(CUSTOM_HASHTAGS_KEY, JSON.stringify(newHashtags));
+    
+    // Also remove from selected tags if it was selected
+    const newTags = new Set(selectedTags);
+    newTags.delete(hashtag);
+    setSelectedTags(newTags);
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify([...newTags]));
+  };
+
+  const handleAddCustomMention = (mention) => {
+    // Ensure it starts with @
+    const formatted = mention.startsWith('@') ? mention : `@${mention}`;
+    if (!customMentions.includes(formatted) && !data.mentions.includes(formatted)) {
+      const newMentions = [...customMentions, formatted];
+      setCustomMentions(newMentions);
+      localStorage.setItem(CUSTOM_MENTIONS_KEY, JSON.stringify(newMentions));
+      return true;
+    }
+    return false;
+  };
+
+  const handleRemoveCustomMention = (mention) => {
+    const newMentions = customMentions.filter(m => m !== mention);
+    setCustomMentions(newMentions);
+    localStorage.setItem(CUSTOM_MENTIONS_KEY, JSON.stringify(newMentions));
+    
+    // Also remove from selected tags if it was selected
+    const newTags = new Set(selectedTags);
+    newTags.delete(mention);
     setSelectedTags(newTags);
     localStorage.setItem(PREFERENCES_KEY, JSON.stringify([...newTags]));
   };
@@ -98,8 +168,14 @@ function App() {
         <HashtagPanel 
           hashtags={data.hashtags || []}
           mentions={data.mentions || []}
+          customHashtags={customHashtags}
+          customMentions={customMentions}
           selectedItems={selectedTags}
           onToggleItem={handleToggleTag}
+          onAddCustomHashtag={handleAddCustomHashtag}
+          onRemoveCustomHashtag={handleRemoveCustomHashtag}
+          onAddCustomMention={handleAddCustomMention}
+          onRemoveCustomMention={handleRemoveCustomMention}
         />
 
         <CategoryFilter 
