@@ -1,10 +1,16 @@
 import React from 'react';
 
-const TweetCard = ({ id, message, isDone, onTweet }) => {
+const TweetCard = ({ id, message, isTweetDone, isTruthDone, onTweet, onTruth }) => {
   const handleTweetClick = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     onTweet(id);
+  };
+
+  const handleTruthClick = () => {
+    const url = `https://truthsocial.com/share?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+    onTruth(id);
   };
 
   const renderMessage = (text) => {
@@ -20,14 +26,22 @@ const TweetCard = ({ id, message, isDone, onTweet }) => {
   };
 
   return (
-    <div className={`tweet-card ${isDone ? 'done' : ''}`}>
+    <div className={`tweet-card ${isTweetDone && isTruthDone ? 'done' : ''}`}>
       <p className="tweet-content">{renderMessage(message)}</p>
-      <button 
-        className="tweet-btn" 
-        onClick={handleTweetClick}
-      >
-        {isDone ? 'Posted' : 'Tweet This'}
-      </button>
+      <div className="tweet-actions">
+        <button 
+          className={'tweet-btn' + (isTweetDone ? ' done' : '')} 
+          onClick={handleTweetClick}
+        >
+          {isTweetDone ? 'Posted' : 'Tweet'}
+        </button>
+        <button 
+          className={'tweet-btn truth-btn' + (isTruthDone ? ' done' : '')} 
+          onClick={handleTruthClick}
+        >
+          {isTruthDone ? 'Posted' : 'Truth'}
+        </button>
+      </div>
     </div>
   );
 };

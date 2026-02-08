@@ -6,6 +6,7 @@ import HashtagPanel from './components/HashtagPanel';
 import './App.css';
 
 const LOCAL_STORAGE_KEY = 'twitter_app_done_messages';
+const LOCAL_STORAGE_TRUTH_KEY = 'twitter_app_done_truths';
 const PREFERENCES_KEY = 'twitter_app_preferences';
 const CUSTOM_HASHTAGS_KEY = 'twitter_app_custom_hashtags';
 const CUSTOM_MENTIONS_KEY = 'twitter_app_custom_mentions';
@@ -13,6 +14,7 @@ const CUSTOM_MENTIONS_KEY = 'twitter_app_custom_mentions';
 function App() {
   const [selectedCategory, setSelectedCategory] = useState(data.categories[0]);
   const [doneMessages, setDoneMessages] = useState(new Set());
+  const [doneTruths, setDoneTruths] = useState(new Set());
   const [selectedTags, setSelectedTags] = useState(new Set());
   const [customHashtags, setCustomHashtags] = useState([]);
   const [customMentions, setCustomMentions] = useState([]);
@@ -25,6 +27,15 @@ function App() {
         setDoneMessages(new Set(JSON.parse(savedDone)));
       } catch (e) {
         console.error("Failed to parse done messages", e);
+      }
+    }
+
+    const savedDoneTruths = localStorage.getItem(LOCAL_STORAGE_TRUTH_KEY);
+    if (savedDoneTruths) {
+      try {
+        setDoneTruths(new Set(JSON.parse(savedDoneTruths)));
+      } catch (e) {
+        console.error("Failed to parse done truths", e);
       }
     }
 
@@ -121,9 +132,18 @@ function App() {
 
   const handleClearHistory = () => {
     setDoneMessages(new Set());
+    setDoneTruths(new Set());
     localStorage.removeItem(LOCAL_STORAGE_KEY);
-    // Optionally clear prefs too, but usually clear history implies just done tasks. 
-    // Keeping prefs for now.
+    localStorage.removeItem(LOCAL_STORAGE_TRUTH_KEY);
+  };
+
+  const handleClearPreferences = () => {
+    setSelectedTags(new Set());
+    setCustomHashtags([]);
+    setCustomMentions([]);
+    localStorage.removeItem(PREFERENCES_KEY);
+    localStorage.removeItem(CUSTOM_HASHTAGS_KEY);
+    localStorage.removeItem(CUSTOM_MENTIONS_KEY);
   };
 
   // Calculate counts for each category
@@ -134,14 +154,7 @@ function App() {
     categoryCounts[cat] = { done: doneCount, total: msgs.length };
   });
 
-  const rawMessages = data.messages[selectedCategory] || [];
-  // Sort: Not done first, then Done
-  const currentMessages = [...rawMessages].sort((a, b) => {
-    const aDone = doneMessages.has(`${selectedCategory}-${a.id}`);
-    const bDone = doneMessages.has(`${selectedCategory}-${b.id}`);
-    if (aDone === bDone) return 0;
-    return aDone ? 1 : -1;
-  });
+  const currentMessages = data.messages[selectedCategory] || [];
 
   const handleTweet = (id) => {
     const key = `${selectedCategory}-${id}`;
@@ -151,14 +164,27 @@ function App() {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([...newDoneMessages]));
   };
 
+  const handleTruth = (id) => {
+    const key = `${selectedCategory}-${id}`;
+    const newDoneTruths = new Set(doneTruths);
+    newDoneTruths.add(key);
+    setDoneTruths(newDoneTruths);
+    localStorage.setItem(LOCAL_STORAGE_TRUTH_KEY, JSON.stringify([...newDoneTruths]));
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
         <div className="header-top">
           <h1>Twitter Amplification</h1>
-          <button className="clear-history-btn" onClick={handleClearHistory}>
-            Clear History
-          </button>
+          <div className="header-actions">
+            <button className="clear-history-btn" onClick={handleClearPreferences}>
+              Clear Preferences
+            </button>
+            <button className="clear-history-btn" onClick={handleClearHistory}>
+              Clear History
+            </button>
+          </div>
         </div>
         <p>Select a category and tweet to support the cause.</p>
         <div className="warning-banner">
@@ -197,8 +223,10 @@ function App() {
               key={msg.id}
               id={msg.id}
               message={fullMessage}
-              isDone={doneMessages.has(`${selectedCategory}-${msg.id}`)}
+              isTweetDone={doneMessages.has(`${selectedCategory}-${msg.id}`)}
+              isTruthDone={doneTruths.has(`${selectedCategory}-${msg.id}`)}
               onTweet={handleTweet}
+              onTruth={handleTruth}
             />
           );
         })}

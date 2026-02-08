@@ -54,12 +54,20 @@ body {
   margin-bottom: 10px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .clear-history-btn {
   background-color: transparent;
   color: var(--secondary-text);
   border: 1px solid var(--border-color);
   font-size: 0.9rem;
   padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 9999px;
+  transition: all 0.2s;
 }
 
 .clear-history-btn:hover {
@@ -138,6 +146,11 @@ body {
   white-space: pre-wrap;
 }
 
+.tweet-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .tweet-btn {
   align-self: flex-start;
   background-color: var(--primary-color);
@@ -150,8 +163,21 @@ body {
   transition: background-color 0.2s;
 }
 
+.tweet-btn.done {
+  opacity: var(--done-opacity);
+  cursor: default;
+}
+
 .tweet-btn:hover {
   background-color: var(--primary-hover);
+}
+
+.truth-btn {
+  background-color: #560FAD; /* Truth Social Purple */
+}
+
+.truth-btn:hover {
+  background-color: #4a0d94;
 }
 
 .tweet-btn:disabled {
