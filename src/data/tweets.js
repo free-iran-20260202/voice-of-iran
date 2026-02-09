@@ -1,3 +1,78 @@
+const mentionGroups = [
+    {
+        label: 'Global Organizations',
+        mentions: [
+            '@who'
+        ]
+    },
+    {
+        label: 'United States',
+        mentions: [
+            '@realdonaldtrump',
+            '@potus',
+            '@LindseyGrahamSC'
+        ]
+    },
+    {
+        label: 'European Union',
+        mentions: [
+            '@vonderleyen',
+            '@JosepBorrellF'
+        ]
+    },
+    {
+        label: 'Netherlands',
+        mentions: [
+            '@MinPres',
+            '@HankeBruinsSlot'
+        ]
+    },
+    {
+        label: 'Germany',
+        mentions: [
+            '@Bundeskanzler',
+            '@ABaerbock'
+        ]
+    },
+    {
+        label: 'France',
+        mentions: [
+            '@EmmanuelMacron',
+            '@CatherineColonna'
+        ]
+    },
+    {
+        label: 'Spain',
+        mentions: [
+            '@sanchezcastejon',
+            '@SpainMFA'
+        ]
+    },
+    {
+        label: 'Italy',
+        mentions: [
+            '@GiorgiaMeloni',
+            '@ItalyMFA'
+        ]
+    },
+    {
+        label: 'United Kingdom',
+        mentions: [
+            '@RishiSunak',
+            '@David_Cameron'
+        ]
+    },
+    {
+        label: 'Sweden',
+        mentions: [
+            '@SwedishPM',
+            '@TobiasBillstrom'
+        ]
+    }
+];
+
+const mentions = mentionGroups.flatMap((group) => group.mentions);
+
 export const data = {
     categories: [
         "healthcare",
@@ -187,10 +262,6 @@ export const data = {
         '#FreeIran',
         '#NoDealWithMullahs'
     ],
-    mentions: [
-        '@who',
-        '@realdonaldtrump',
-        '@potus',
-        '@LindseyGrahamSC'
-    ],
+    mentions,
+    mentionGroups,
 }

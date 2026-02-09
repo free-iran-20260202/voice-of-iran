@@ -10,6 +10,58 @@ const LOCAL_STORAGE_TRUTH_KEY = 'twitter_app_done_truths';
 const PREFERENCES_KEY = 'twitter_app_preferences';
 const CUSTOM_HASHTAGS_KEY = 'twitter_app_custom_hashtags';
 const CUSTOM_MENTIONS_KEY = 'twitter_app_custom_mentions';
+const DEFAULT_CUSTOM_MENTION_GROUP = 'Custom Mentions';
+
+const normalizeMention = (mention) => {
+  if (typeof mention !== 'string') {
+    return '';
+  }
+  const trimmed = mention.trim();
+  if (!trimmed) {
+    return '';
+  }
+  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
+};
+
+const normalizeCustomMentionGroups = (savedValue) => {
+  if (!Array.isArray(savedValue)) {
+    return [];
+  }
+
+  const addUniqueMentions = (mentions, seenMentions) => {
+    const normalized = [];
+    mentions.forEach((mention) => {
+      const formatted = normalizeMention(mention);
+      if (formatted && !seenMentions.has(formatted)) {
+        seenMentions.add(formatted);
+        normalized.push(formatted);
+      }
+    });
+    return normalized;
+  };
+
+  // Backward compatibility with legacy storage format: ["@name1", "@name2"]
+  if (savedValue.every((item) => typeof item === 'string')) {
+    const seenMentions = new Set();
+    const mentions = addUniqueMentions(savedValue, seenMentions);
+    if (!mentions.length) {
+      return [];
+    }
+    return [{ label: DEFAULT_CUSTOM_MENTION_GROUP, mentions }];
+  }
+
+  const seenMentions = new Set();
+  return savedValue
+    .filter((group) => group && typeof group === 'object')
+    .map((group) => {
+      const label = typeof group.label === 'string' ? group.label.trim() : '';
+      const mentions = Array.isArray(group.mentions) ? addUniqueMentions(group.mentions, seenMentions) : [];
+      return { label, mentions };
+    })
+    .filter((group) => group.label && group.mentions.length > 0);
+};
+
+const flattenMentionGroups = (groups) => groups.flatMap((group) => group.mentions);
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState(data.categories[0]);
@@ -17,7 +69,7 @@ function App() {
   const [doneTruths, setDoneTruths] = useState(new Set());
   const [selectedTags, setSelectedTags] = useState(new Set());
   const [customHashtags, setCustomHashtags] = useState([]);
-  const [customMentions, setCustomMentions] = useState([]);
+  const [customMentionGroups, setCustomMentionGroups] = useState([]);
 
   // Load state from local storage on mount
   useEffect(() => {
@@ -60,7 +112,7 @@ function App() {
     const savedCustomMentions = localStorage.getItem(CUSTOM_MENTIONS_KEY);
     if (savedCustomMentions) {
       try {
-        setCustomMentions(JSON.parse(savedCustomMentions));
+        setCustomMentionGroups(normalizeCustomMentionGroups(JSON.parse(savedCustomMentions)));
       } catch (e) {
         console.error("Failed to parse custom mentions", e);
       }
@@ -106,22 +158,51 @@ function App() {
     localStorage.setItem(PREFERENCES_KEY, JSON.stringify([...newTags]));
   };
 
-  const handleAddCustomMention = (mention) => {
-    // Ensure it starts with @
-    const formatted = mention.startsWith('@') ? mention : `@${mention}`;
-    if (!customMentions.includes(formatted) && !data.mentions.includes(formatted)) {
-      const newMentions = [...customMentions, formatted];
-      setCustomMentions(newMentions);
-      localStorage.setItem(CUSTOM_MENTIONS_KEY, JSON.stringify(newMentions));
-      return true;
+  const handleAddCustomMention = (mention, groupLabel) => {
+    const formattedMention = normalizeMention(mention);
+    const normalizedLabel = typeof groupLabel === 'string' ? groupLabel.trim() : '';
+
+    if (!formattedMention || !normalizedLabel) {
+      return false;
     }
-    return false;
+
+    const allMentions = new Set([
+      ...data.mentions,
+      ...flattenMentionGroups(customMentionGroups)
+    ]);
+    if (allMentions.has(formattedMention)) {
+      return false;
+    }
+
+    const newGroups = customMentionGroups.map((group) => ({
+      label: group.label,
+      mentions: [...group.mentions]
+    }));
+
+    const groupIndex = newGroups.findIndex(
+      (group) => group.label.toLowerCase() === normalizedLabel.toLowerCase()
+    );
+    if (groupIndex >= 0) {
+      newGroups[groupIndex].mentions.push(formattedMention);
+    } else {
+      newGroups.push({ label: normalizedLabel, mentions: [formattedMention] });
+    }
+
+    setCustomMentionGroups(newGroups);
+    localStorage.setItem(CUSTOM_MENTIONS_KEY, JSON.stringify(newGroups));
+    return true;
   };
 
   const handleRemoveCustomMention = (mention) => {
-    const newMentions = customMentions.filter(m => m !== mention);
-    setCustomMentions(newMentions);
-    localStorage.setItem(CUSTOM_MENTIONS_KEY, JSON.stringify(newMentions));
+    const newGroups = customMentionGroups
+      .map((group) => ({
+        ...group,
+        mentions: group.mentions.filter((m) => m !== mention)
+      }))
+      .filter((group) => group.mentions.length > 0);
+
+    setCustomMentionGroups(newGroups);
+    localStorage.setItem(CUSTOM_MENTIONS_KEY, JSON.stringify(newGroups));
     
     // Also remove from selected tags if it was selected
     const newTags = new Set(selectedTags);
@@ -140,7 +221,7 @@ function App() {
   const handleClearPreferences = () => {
     setSelectedTags(new Set());
     setCustomHashtags([]);
-    setCustomMentions([]);
+    setCustomMentionGroups([]);
     localStorage.removeItem(PREFERENCES_KEY);
     localStorage.removeItem(CUSTOM_HASHTAGS_KEY);
     localStorage.removeItem(CUSTOM_MENTIONS_KEY);
@@ -174,7 +255,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="app-header">
+      <header className="app-intro">
         <div className="header-top">
           <h1>Twitter Amplification</h1>
           <div className="header-actions">
@@ -190,12 +271,15 @@ function App() {
         <div className="warning-banner">
           Warning: To avoid being banned, please tweet responsibly. We recommend waiting 1-2 minutes between tweets.
         </div>
-        
+      </header>
+
+      <section className="app-controls">
         <HashtagPanel 
           hashtags={data.hashtags || []}
           mentions={data.mentions || []}
+          mentionGroups={data.mentionGroups || []}
           customHashtags={customHashtags}
-          customMentions={customMentions}
+          customMentionGroups={customMentionGroups}
           selectedItems={selectedTags}
           onToggleItem={handleToggleTag}
           onAddCustomHashtag={handleAddCustomHashtag}
@@ -203,14 +287,14 @@ function App() {
           onAddCustomMention={handleAddCustomMention}
           onRemoveCustomMention={handleRemoveCustomMention}
         />
-
+        
         <CategoryFilter 
           categories={data.categories}
           selectedCategory={selectedCategory}
           onSelectCategory={handleSelectCategory}
           counts={categoryCounts}
         />
-      </header>
+      </section>
       
       <main className="tweets-grid">
         {currentMessages.map((msg) => {
