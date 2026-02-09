@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TweetCard = ({ id, message, isTweetDone, isTruthDone, onTweet, onTruth }) => {
+const TweetCard = ({ id, message, isTweetDone, isTruthDone, onTweet, onTruth, onDelete }) => {
   const handleTweetClick = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -27,6 +27,17 @@ const TweetCard = ({ id, message, isTweetDone, isTruthDone, onTweet, onTruth }) 
 
   return (
     <div className={`tweet-card ${isTweetDone && isTruthDone ? 'done' : ''}`}>
+      {onDelete && (
+        <button
+          type="button"
+          className="tweet-delete-btn"
+          onClick={() => onDelete(id)}
+          title="Delete custom tweet"
+          aria-label="Delete custom tweet"
+        >
+          x
+        </button>
+      )}
       <p className="tweet-content">{renderMessage(message)}</p>
       <div className="tweet-actions">
         <button 

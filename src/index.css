@@ -125,6 +125,7 @@ body {
   border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 16px; 
+  position: relative;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
@@ -144,7 +145,30 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   margin-bottom: 16px;
+  margin-top: 8px;
   white-space: pre-wrap;
+}
+
+.tweet-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--secondary-text);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.tweet-delete-btn:hover {
+  color: #f4212e;
+  border-color: #f4212e;
+  background: rgba(244, 33, 46, 0.12);
 }
 
 .tweet-actions {
@@ -211,6 +235,90 @@ body {
   border-radius: 8px;
   margin: 0.6rem 0;
   width: 100%;
+}
+
+.custom-tweet-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0 0.6rem;
+}
+
+.custom-tweet-card {
+  width: min(560px, 100%);
+}
+
+.custom-tweet-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+}
+
+.custom-tweet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.custom-tweet-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 3.2rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.45rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  box-sizing: border-box;
+}
+
+.custom-tweet-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--secondary-text);
+}
+
+.char-counter.limit {
+  color: #f4212e;
+  font-weight: 600;
+}
+
+.custom-template-list {
+  margin-top: 0.6rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.6rem;
+}
+
+.custom-template-list h4 {
+  margin: 0 0 0.45rem 0;
+  font-size: 0.82rem;
+  color: var(--secondary-text);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.custom-template-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  margin-bottom: 0.4rem;
+}
+
+.custom-template-item p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
 }
 
 .hashtag-panel h3 {
